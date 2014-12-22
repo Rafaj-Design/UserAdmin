@@ -7,44 +7,68 @@ class Account extends UserAdminAppModel {
 
 	public $validate = array(
 		'username' => array(
-			'notEmpty' => array(
-				'rule' => array('notEmpty'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
-				//'last' => false, // Stop validation after this rule
-				//'on' => 'create', // Limit validation to 'create' or 'update' operations
-			),
-		),
+            'required' => array(
+                'rule' => array('notEmpty'),
+                'message' => 'A username is required'
+            ),
+            'name' => array(
+	            'rule'    => array('minLength', '4'),
+	            'allowEmpty' => false,
+	            'message' => 'Username needs to have at least 4 characters'
+	        ),
+	        'between' => array(
+                'rule'    => array('between', 4, 40),
+                'message' => 'Username needs to be between 4 to 40 characters'
+            ),
+            'unique' => array(
+		        'rule' => 'isUnique',
+		        'message' => 'Username is already registered'
+		    ),
+		    'verifyEmailFormat' => array(
+				'rule' => array('verifyEmailFormat'), 
+				'message' => 'For security reasons, email should not be used as username' 
+			)
+    
+        ),
 		'firstname' => array(
-			'notEmpty' => array(
-				'rule' => array('notEmpty'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
-				//'last' => false, // Stop validation after this rule
-				//'on' => 'create', // Limit validation to 'create' or 'update' operations
-			),
-		),
-		'lastname' => array(
-			'notEmpty' => array(
-				'rule' => array('notEmpty'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
-				//'last' => false, // Stop validation after this rule
-				//'on' => 'create', // Limit validation to 'create' or 'update' operations
-			),
-		),
+            'required' => array(
+                'rule' => array('notEmpty'),
+                'message' => 'Firstname is required'
+            ),
+            'alphaNumeric' => array(
+                'rule'     => 'alphaNumeric',
+                'required' => true,
+                'message'  => 'Alphabets and numbers only'
+            ),
+            'between' => array(
+                'rule'    => array('between', 2, 40),
+                'message' => 'First name needs to be between 2 to 40 characters'
+            )
+        ),
+        'lastname' => array(
+            'required' => array(
+                'rule' => array('notEmpty'),
+                'message' => 'Lastname is required'
+            ),
+            'alphaNumeric' => array(
+                'rule'     => 'alphaNumeric',
+                'required' => true,
+                'message'  => 'Alphabets and numbers only'
+            ),
+            'between' => array(
+                'rule'    => array('between', 2, 40),
+                'message' => 'Last name needs to be between 2 to 40 characters'
+            )
+        ),
 		'email' => array(
-			'email' => array(
-				'rule' => array('email'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
-				//'last' => false, // Stop validation after this rule
-				//'on' => 'create', // Limit validation to 'create' or 'update' operations
-			),
+			'required' => array(
+                'rule'    => array('email'),
+				'message' => 'Please supply a valid email address',
+            ),
+            'unique' => array(
+		        'rule' => 'isUnique',
+		        'message' => 'Email is already registered'
+		    ),
 		),
 		'password' => array(
 			'notEmpty' => array(
@@ -73,6 +97,44 @@ class Account extends UserAdminAppModel {
 			'finderQuery' => '',
 		)
 	);
+	
+	// Authentication
+	
+	public function authsomeLogin($type, $credentials = array()) {
+        switch ($type) {
+            case 'guest':
+                return array();
+            case 'credentials':
+                $password = Authsome::hash($credentials['password']);
+
+                // This is the logic for validating the login
+                $conditions = array(
+                    'Account.email' => $credentials['email'],
+                    'Account.password' => $password,
+                );
+                break;
+            default:
+                return null;
+        }
+
+        return $this->find('first', compact('conditions'));
+    }
+	
+	// Validation methods
+	
+    public function verifyEmailFormat($field=array()) {
+    	$ok = !(bool)filter_var($field['username'], FILTER_VALIDATE_EMAIL);
+    	return $ok;
+    }
+    
+    // Handling methods
+	
+    public function beforeSave($options = array()) {
+	    if (isset($this->data[$this->alias]['password'])) {
+	        $this->data[$this->alias]['password'] = AuthComponent::password($this->data[$this->alias]['password']);
+	    }
+	    return true;
+	}
 	
 	// Custom methods
 	

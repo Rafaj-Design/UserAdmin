@@ -2,17 +2,16 @@
 
 App::uses('AppController', 'Controller');
 App::uses('Me', 'UserAdmin.Lib');
+App::uses('Account', 'UserAdmin.Model');
 
 
 class UserAdminAppController extends AppController {
 	
 		public $components = array(
 	    'Session',
-	    'Auth' => array(
-	        'loginRedirect' => array('controller' => 'pages', 'action' => 'index'),
-            'logoutRedirect' => array('controller' => 'users', 'action' => 'login'),
-	        'authorize' => array('Controller'),
-	    ),
+	    'Authsome.Authsome' => array(
+            'model' => 'UserAdmin.Account'
+        ),
 	    'Cookie'
 	);
 	

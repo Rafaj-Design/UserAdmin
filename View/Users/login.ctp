@@ -1,8 +1,8 @@
-<?php echo $this->Form->create('User', array('role'=>'form')); ?>
+<?php echo $this->Form->create('UserAdmin.Account', array('role'=>'form')); ?>
 	<h3 class="form-title form-title-first"><i class="icon-lock"></i> <?= __('Login'); ?> </h3>
 	<div class="form-group">
 		<label><?= __('Email'); ?></label>
-		<?= $this->Form->input('username', array(
+		<?= $this->Form->input('email', array(
 			'label' => false,
 			'class' => 'form-control',
 			'placeholder' => 'john.doe@example.com',

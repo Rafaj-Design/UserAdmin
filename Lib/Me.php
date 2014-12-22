@@ -1,6 +1,6 @@
 <?php
 
-App::uses('AuthComponent', 'Controller/Component');
+App::uses('AuthsomeComponent', 'Authsome.Controller/Component');
 App::uses('AppModel', 'Model');
 App::uses('Account', 'UserAdmin.Model');
 App::uses('CakeSession', 'Model/Datasource');
@@ -9,10 +9,7 @@ App::uses('CakeSession', 'Model/Datasource');
 class Me {
 	
 	protected static $componentCollection;
-	protected static $auth;
-	
 	protected static $session;
-	
 	protected static $didLoadTeams = false;
 	
 	
@@ -21,10 +18,7 @@ class Me {
 	}
 	
 	protected static function checkcomponentCollection() {
-		if (!self::$componentCollection || !self::$auth) {
-			self::$componentCollection = new ComponentCollection();
-			self::$auth = new AuthComponent(self::$componentCollection);
-		}
+		
 	}
 	
 	protected static function prepareSession() {
@@ -37,20 +31,12 @@ class Me {
 		$user = new Account();
 		$data = $user->read(null, Me::id());
 		if ($data) {
-			$role = new Role();
-			$role = $role->getFullRole($data['Account']['id'], self::teamId());
-			$data['Account']['role'] = $role['role'];
-
 			unset($data['Account']['password']);
 			unset($data['Account']['password_token']);
 			
 			self::prepareSession();
-			self::$session->write('Auth.Role', $role);
 			self::$session->write('Auth.Account', $data['Account']);
-			self::$session->write('Auth.Teams', $data['Teams']);
-			if (!self::falseAccount()) {
-				self::$session->write('True.Account', $data['Account']);
-			}
+			self::$session->write('Auth.Teams', $data['Team']);
 		}
 	}
 	
@@ -101,12 +87,12 @@ class Me {
 	
 	public static function id() {
 		self::checkcomponentCollection();
-		return (int)self::$auth->user('id');
+		return (int)Authsome::get('Account.id');
 	}
 			
-	public static function get($variable='id') {
+	public static function get($variable='Account.id') {
 		self::checkcomponentCollection();
-		return self::$auth->user($variable);
+		return Authsome::get($variable);
 	}
 	
 	public static function logout() {
