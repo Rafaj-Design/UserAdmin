@@ -2,8 +2,6 @@
 
 App::uses('UserAdminAppController', 'UserAdmin.Controller');
 App::uses('Me', 'UserAdmin.Lib');
-App::uses('Account', 'UserAdmin.Model');
-App::uses('Team', 'UserAdmin.Model');
 
 
 class UsersController extends UserAdminAppController {
@@ -113,12 +111,12 @@ class UsersController extends UserAdminAppController {
 	// Private methods
 	
 	private function checkIfDefaultDataExists() {
-		if (!$this->Team->adminTeam()) {
+		if (!$this->Team->find('first', 1)) {
 			if (!$this->Team->createAdminTeam()) {
 				// TODO: handle error
 			}
 		}
-		if (!$this->Account->adminAccount()) {
+		if (!$this->Account->find('first', 1)) {
 			if (!$this->Account->createAdminAccount()) {
 				// TODO: handle error
 			}

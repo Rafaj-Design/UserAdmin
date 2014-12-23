@@ -97,7 +97,7 @@ class Me {
 	}
 	
 	public static function gravatar($size) {
-		return 'https://1.gravatar.com/avatar/'.md5(self::get('Account.email')).'&r=x&s='.$size;
+		return 'https://1.gravatar.com/avatar/'.md5(self::get('email')).'&r=x&s='.$size;
 	}
 	
 	public static function id() {

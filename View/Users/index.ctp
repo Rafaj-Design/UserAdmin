@@ -1,6 +1,4 @@
-<?php
-
-?><div class="main-box clearfix">
+<div class="main-box clearfix">
 	<header class="main-box-header clearfix">
 		<div class="filter-block pull-left">			
 			<form method="get" action="" class="form-group pull-left">
@@ -10,7 +8,7 @@
 		</div>
 		<div class="filter-block pull-right">			
 			<a href="<?= $this->Html->url(array('plugin' => null, 'controller' => 'users', 'action' => 'manage')); ?>" class="btn btn-primary pull-right">
-				<i class="fa fa-plus-circle fa-lg"></i> Manage users
+				<i class="fa fa-envelope-o fa-lg"></i> Invite users
 			</a>
 		</div>
 	</header>
