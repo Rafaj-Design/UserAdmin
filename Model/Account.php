@@ -91,7 +91,7 @@ class Account extends UserAdminAppModel {
 			'unique' => 'keepExisting',
 			'conditions' => '',
 			'fields' => '',
-			'order' => '',
+			'order' => 'name',
 			'limit' => '',
 			'offset' => '',
 			'finderQuery' => '',

@@ -20,5 +20,12 @@ class UserAdminAppController extends AppController {
 		
 		Me::setSession($this->Session);
 	}
+	
+	public function tryLoadOuterLayout() {
+		$path = APP.'View'.DS.'Layouts'.DS;
+		if (file_exists($path.'outer.ctp')) {
+			$this->layout = 'outer';
+		}
+	}
 
 }

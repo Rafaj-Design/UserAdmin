@@ -4,7 +4,7 @@ $user = $this->request->data['User'];
 
 $this->Html->addCrumb(__('My account'), null);
 
-if (Me::falseUser()) {
+if (false) {
 	$disabled = ' data-toggle="tooltip" title="You can only edit your own account"';
 	$style = 'default';
 }

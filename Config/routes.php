@@ -1,10 +1,12 @@
 <?php
 
+// Users controller
 Router::connect('/users', array('plugin' => 'UserAdmin', 'controller' => 'users', 'action' => 'index'));
-Router::connect('/users/login', array('plugin' => 'UserAdmin', 'controller' => 'users', 'action' => 'login'));
-Router::connect('/users/logout', array('plugin' => 'UserAdmin', 'controller' => 'users', 'action' => 'logout'));
-Router::connect('/users/account', array('plugin' => 'UserAdmin', 'controller' => 'users', 'action' => 'account'));
-Router::connect('/users', array('plugin' => 'UserAdmin', 'controller' => 'users', 'action' => 'index'));
-Router::connect('/users', array('plugin' => 'UserAdmin', 'controller' => 'users', 'action' => 'index'));
+Router::connect('/users/:action/*', array('plugin' => 'UserAdmin', 'controller' => 'users'));
+
+
+// Teams controller
+Router::connect('/teams', array('plugin' => 'UserAdmin', 'controller' => 'teams', 'action' => 'index'));
+Router::connect('/teams/:action/*', array('plugin' => 'UserAdmin', 'controller' => 'teams'));
 
 

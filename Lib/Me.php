@@ -45,6 +45,12 @@ class Me {
 		return self::$session->read('Auth.Teams');
 	}
 	
+	public static function overrideTeam($team) {
+		self::prepareSession();
+		$ret = self::$session->write('Auth.Team', $team);
+		return $ret;
+	}
+	
 	public static function selectTeam($teamId) {
 		$teams = self::teams();
 		if (empty($teams) && !self::$didLoadTeams) {
@@ -82,7 +88,7 @@ class Me {
 	}
 	
 	public static function gravatar($size) {
-		return 'https://1.gravatar.com/avatar/'.md5(Me::get('email')).'&r=x&s='.$size;
+		return 'https://1.gravatar.com/avatar/'.md5(self::get('Account.email')).'&r=x&s='.$size;
 	}
 	
 	public static function id() {
