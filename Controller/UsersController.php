@@ -21,6 +21,17 @@ class UsersController extends UserAdminAppController {
 		parent::beforeFilter();		
 	}
 	
+	// Security
+	
+	public function checkSecurity() {
+		if (!(bool)Me::id()) {
+			if ($this->action != 'logout' && $this->action != 'login') {
+				return $this->redirect(array('controller' => 'users', 'action' => 'logout'));
+			}
+		}
+	}
+
+	
 	// Custom page methods
 	
 	public function index() {
@@ -60,10 +71,8 @@ class UsersController extends UserAdminAppController {
 			$this->checkIfDefaultDataExists();
 			$account = Authsome::login($this->data['Account']);
 			if ($account) {
-	        	Me::reload();
+	        	Me::reload($account);
 	        	Error::add('You have been successfully logged in', Error::TypeOk);
-	        	Error::add('Your id is: '.Me::id(), Error::TypeOk);
-	        	Error::add('You are in '.count(Me::id()).' teams', Error::TypeOk);
 	        	
 	        	$teams = Me::teams();
 	        	if (count($teams) > 1) {

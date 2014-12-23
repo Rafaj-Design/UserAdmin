@@ -1,5 +1,6 @@
 <?php
 
+App::uses('AuthComponent', 'Controller/Component');
 App::uses('AuthsomeComponent', 'Authsome.Controller/Component');
 App::uses('AppModel', 'Model');
 App::uses('Account', 'UserAdmin.Model');
@@ -10,32 +11,40 @@ class Me {
 	
 	protected static $componentCollection;
 	protected static $session;
+	protected static $account;
 	protected static $didLoadTeams = false;
 	
 	
 	public static function setSession($session) {
-		self::$session = $session;
+		//self::$session = $session;
 	}
 	
-	protected static function checkcomponentCollection() {
-		
+	protected static function checkComponentCollection() {
+		if (!self::$componentCollection || !self::$session) {
+			self::$componentCollection = new ComponentCollection();
+			self::$session = new SessionComponent(self::$componentCollection);
+		}
 	}
 	
 	protected static function prepareSession() {
 		if (!self::$session) {
-			die('Session has not been created!');
+			self::checkComponentCollection();
+			if (!self::$session) {
+				die('Session has not been created!');
+			}
 		}
 	}
 	
-	public static function reload() {
+	public static function reload($data) {
 		$user = new Account();
-		$data = $user->read(null, Me::id());
+		//$data = $user->read(null, Me::id());
 		if ($data) {
 			unset($data['Account']['password']);
 			unset($data['Account']['password_token']);
 			
 			self::prepareSession();
-			self::$session->write('Auth.Account', $data['Account']);
+			self::$account = $data['Account'];
+			self::$session->write('Auth.Account', self::$account);
 			self::$session->write('Auth.Teams', $data['Team']);
 		}
 	}
@@ -55,7 +64,7 @@ class Me {
 		$teams = self::teams();
 		if (empty($teams) && !self::$didLoadTeams) {
 			self::$didLoadTeams = true;
-			self::reload();
+			//self::reload();
 		}
 		if ($teamId > 0) foreach ($teams as $team) {
 			if ($team['id'] == $teamId) {
@@ -92,13 +101,16 @@ class Me {
 	}
 	
 	public static function id() {
-		self::checkcomponentCollection();
-		return (int)Authsome::get('Account.id');
+		self::prepareSession();
+		return (int)self::get('id');
 	}
 			
-	public static function get($variable='Account.id') {
-		self::checkcomponentCollection();
-		return Authsome::get($variable);
+	public static function get($variable='id') {
+		self::prepareSession();
+		if (!self::$account) {
+			self::$account = self::$session->read('Auth.Account');
+		}
+		return self::$account[$variable];
 	}
 	
 	public static function logout() {

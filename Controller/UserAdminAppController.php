@@ -7,7 +7,7 @@ App::uses('Account', 'UserAdmin.Model');
 
 class UserAdminAppController extends AppController {
 	
-		public $components = array(
+	public $components = array(
 	    'Session',
 	    'Authsome.Authsome' => array(
             'model' => 'UserAdmin.Account'
