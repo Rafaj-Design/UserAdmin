@@ -1,8 +1,11 @@
 UserAdmin
 =========
 
-Needs https://github.com/felixge/cakephp-authsome to work
-Please follow the Authsome instructions to install
+Needs: 
+- https://github.com/felixge/cakephp-authsome
+- https://github.com/Ridiculous-Innovations/Error
+
+to work. Please follow the Authsome and Error plugings instructions to install
 
 Implementation:
 
@@ -27,3 +30,5 @@ Implementation:
 	
 3) Link to user and team controllers like this:
 	<a href="<?= $this->Html->url(array('controller' => 'users', 'action' => 'index', 'plugin' => null)); ?>">Users index</a>
+
+4) Shall you require to display login/registration pages in a different layout template, create layout called outer.ctp which will be used instead of the default one

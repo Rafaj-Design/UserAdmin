@@ -27,7 +27,7 @@
 <?php echo $this->Form->end(); //*/ ?>
 
 
-<?php echo $this->Form->create('UserAdmin.Account', array('role'=>'form')); ?>
+<?php echo $this->Form->create('UserAdmin.Account', array('role'=>'form', 'class' => 'login-form')); ?>
 	<div class="input-group">
 		<span class="input-group-addon"><i class="fa fa-user"></i></span>
 		<?= $this->Form->input('email', array(
@@ -49,7 +49,7 @@
 			'value' => 'password123'
 		)); ?>
 	</div>
-	<div id="remember-me-wrapper">
+	<div id="remember-me-wrapper" class="remember-me-wrapper">
 		<div class="row">
 			<div class="col-xs-6">
 				<div class="checkbox-nice">
@@ -66,7 +66,7 @@
 	</div>
 	<div class="row">
 		<div class="col-xs-12">
-			<button type="submit" class="btn btn-success col-xs-12"><?= __('Login'); ?></button>
+			<button type="submit" class="btn btn-primary col-xs-12"><?= __('Login'); ?></button>
 		</div>
 	</div>
 <?php echo $this->Form->end(); ?>
