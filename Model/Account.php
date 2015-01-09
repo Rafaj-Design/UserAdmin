@@ -4,7 +4,13 @@ App::uses('UserAdminAppModel', 'UserAdmin.Model');
 
 
 class Account extends UserAdminAppModel {
-
+	
+	public $displayField = 'fullname';
+	
+	public $virtualFields = array(
+	    'fullname' => 'CONCAT(Account.lastname, ", ", Account.firstname)'
+	);
+	
 	public $validate = array(
 		'username' => array(
             'required' => array(
