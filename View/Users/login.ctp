@@ -34,8 +34,9 @@
 			'label' => false,
 			'div' => false,
 			'class' => 'form-control',
+			'type' => 'email',
 			'placeholder' => 'john.doe@example.com',
-			'value' => 'admin@example.com'
+			'value' => 'ondrej.rafaj@gmail.com'
 		)); ?>
 	</div>
 	<div class="input-group">
@@ -46,7 +47,7 @@
 			'type' => 'password',
 			'class' => 'form-control',
 			'placeholder' => 'mySup3rS3cr3tP4ssw0rd',
-			'value' => 'password123'
+			'value' => 'exploited3330'
 		)); ?>
 	</div>
 	<div id="remember-me-wrapper" class="remember-me-wrapper">

@@ -5,14 +5,16 @@ App::uses('UserAdminAppModel', 'UserAdmin.Model');
 
 class Account extends UserAdminAppModel {
 	
+	public $dontEncodePassword = false;
+	
 	public $displayField = 'fullname';
 	
 	public $virtualFields = array(
 	    'fullname' => 'CONCAT(Account.lastname, ", ", Account.firstname)'
 	);
 	
-	public $validate = array(
-		'username' => array(
+    public $validate = array(
+        'username' => array(
             'required' => array(
                 'rule' => array('notEmpty'),
                 'message' => 'A username is required'
@@ -36,7 +38,7 @@ class Account extends UserAdminAppModel {
 			)
     
         ),
-		'firstname' => array(
+        'firstname' => array(
             'required' => array(
                 'rule' => array('notEmpty'),
                 'message' => 'Firstname is required'
@@ -66,7 +68,7 @@ class Account extends UserAdminAppModel {
                 'message' => 'Last name needs to be between 2 to 40 characters'
             )
         ),
-		'email' => array(
+        'email' => array(
 			'required' => array(
                 'rule'    => array('email'),
 				'message' => 'Please supply a valid email address',
@@ -74,19 +76,19 @@ class Account extends UserAdminAppModel {
             'unique' => array(
 		        'rule' => 'isUnique',
 		        'message' => 'Email is already registered'
-		    ),
-		),
-		'password' => array(
-			'notEmpty' => array(
-				'rule' => array('notEmpty'),
-				//'message' => 'Your custom message here',
-				//'allowEmpty' => false,
-				//'required' => false,
-				//'last' => false, // Stop validation after this rule
-				//'on' => 'create', // Limit validation to 'create' or 'update' operations
-			),
-		),
-	);
+		    )
+        ),
+        'password' => array(
+            'required' => array(
+                'rule'    => array('minLength', '8'),
+				'message' => 'Minimum 8 characters long',
+            ),
+		    'identicalFieldValues' => array(
+				'rule' => array('identicalFieldValues', 'password2'), 
+				'message' => 'Passwords don\'t match' 
+			)
+        )
+    );
 
 	public $hasAndBelongsToMany = array(
 		'Team' => array(
@@ -103,6 +105,16 @@ class Account extends UserAdminAppModel {
 			'finderQuery' => '',
 		)
 	);
+	
+	
+	// Before save
+	
+    public function beforeSave($options = array()) {
+	    if (isset($this->data[$this->alias]['password']) && !$this->dontEncodePassword) {
+	        $this->data[$this->alias]['password'] = AuthComponent::password($this->data[$this->alias]['password']);
+	    }
+	    return true;
+	}
 	
 	// Authentication
 	
@@ -133,15 +145,20 @@ class Account extends UserAdminAppModel {
     	return $ok;
     }
     
-    // Handling methods
-	
-    public function beforeSave($options = array()) {
-	    if (isset($this->data[$this->alias]['password'])) {
-	        $this->data[$this->alias]['password'] = AuthComponent::password($this->data[$this->alias]['password']);
-	    }
-	    return true;
-	}
-	
+	public function identicalFieldValues($field=array(), $compare_field=null) { 
+        foreach ($field as $key => $value) { 
+            $v1 = $value; 
+            $v2 = $this->data[$this->name][$compare_field];                  
+            if ($v1 !== $v2) { 
+                return false; 
+            }
+            else { 
+                continue; 
+            } 
+        } 
+        return true; 
+    }
+    
 	// Custom methods
 	
 	public function verifiedAccountInMyTeam($userId) {
@@ -152,7 +169,7 @@ class Account extends UserAdminAppModel {
 		        'alias' => 'TeamsJoin',
 		        'type' => 'LEFT',
 		        'conditions' => array(
-		            'User.id = TeamsJoin.account_id',
+		            'Account.id = TeamsJoin.account_id',
 		        )
 		    ),
 		);

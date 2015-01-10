@@ -93,7 +93,29 @@ class UsersController extends UserAdminAppController {
 	}
 	
 	public function account() {
-		
+		$account = $this->Account->find('first', Me::id());
+		$this->set('account', $account);
+		if (empty($this->request->data)) {
+			$this->request->data = $account;
+		}
+		else {
+			$this->Account->id = Me::id();
+			//$username = $this->request->data['Account']['username'];
+			unset($this->request->data['Account']['username']);
+			if (empty($this->request->data['Account']['password']) && !empty($account)) {
+				$this->request->data['Account']['password'] = $account['Account']['password'];
+				$this->request->data['Account']['password2'] = $account['Account']['password'];
+				$this->Account->dontEncodePassword = true;
+			}
+			$ok = $this->Account->save($this->request->data, true);
+			if ($ok) {
+				Error::add('Your details have been successfully saved.');
+				$this->redirect(array('controller' => 'users', 'action' => 'account'));
+			}
+			else {
+				Error::add('Unable to save your details. Please try again or contact system administrator.', Error::TypeError);
+			}
+		}
 	}
 	
 	public function view() {
