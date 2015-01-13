@@ -23,7 +23,7 @@ class UsersController extends UserAdminAppController {
 	
 	public function checkSecurity() {
 		if (!(bool)Me::id()) {
-			if ($this->action != 'logout' && $this->action != 'login') {
+			if ($this->action != 'logout' && $this->action != 'login' && $this->action != 'register' && $this->action != 'forgot-password') {
 				return $this->redirect(array('controller' => 'users', 'action' => 'logout'));
 			}
 		}
@@ -91,6 +91,23 @@ class UsersController extends UserAdminAppController {
 	        }
 		}
 	}
+	
+	public function register() {
+		$this->tryLoadOuterLayout();
+		if ($this->request->is('post')) {
+            $this->Account->create();
+            $this->request->data['Account']['lastlogin'] = '00-00-0000 00:00:00';
+    		$this->request->data['Team']['Team'][] = 1;
+
+            if ($this->Account->save($this->request->data)) {
+                Error::add('Registration has been finished successfully.', Error::TypeOk);
+                $this->login();
+            }
+            else {
+            	Error::add('The user could not be saved. Please, try again.', Error::TypeError);
+            }
+        }
+   	}
 	
 	public function account() {
 		$account = $this->Account->find('first', Me::id());

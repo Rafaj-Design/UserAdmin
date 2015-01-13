@@ -29,8 +29,8 @@ class Team extends UserAdminAppModel {
 	);
 
 	public $hasAndBelongsToMany = array(
-		'User' => array(
-			'className' => 'Account',
+		'Account' => array(
+			'className' => 'UserAdmin.Account',
 			'joinTable' => 'teams_accounts',
 			'foreignKey' => 'team_id',
 			'associationForeignKey' => 'account_id',
