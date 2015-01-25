@@ -105,12 +105,17 @@ class Me {
 		return (int)self::get('id');
 	}
 			
-	public static function get($variable='id') {
+	public static function all() {
 		self::prepareSession();
 		if (!self::$account) {
 			self::$account = self::$session->read('Auth.Account');
 		}
-		return self::$account[$variable];
+		return self::$account;
+	}
+	
+	public static function get($variable='id') {
+		$arr = self::all();
+		return $arr[$variable];
 	}
 	
 	public static function logout() {

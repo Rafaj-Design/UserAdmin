@@ -33,6 +33,8 @@ class UsersController extends UserAdminAppController {
 	// Custom page methods
 	
 	public function index() {
+		$this->set('title_for_layout', 'List users');
+		
 		$this->Paginator->settings = array(
 			'limit' => 10,
 			'url' => array('plugin' => null),
@@ -64,6 +66,8 @@ class UsersController extends UserAdminAppController {
 	}
 	
 	public function login() {
+		$this->set('title_for_layout', 'Login');
+		
 		$this->tryLoadOuterLayout();
 		if ($this->request->is('post')) {
 			$this->checkIfDefaultDataExists();
@@ -93,6 +97,8 @@ class UsersController extends UserAdminAppController {
 	}
 	
 	public function register() {
+		$this->set('title_for_layout', 'Register');
+		
 		$this->tryLoadOuterLayout();
 		if ($this->request->is('post')) {
             $this->Account->create();
@@ -110,6 +116,8 @@ class UsersController extends UserAdminAppController {
    	}
 	
 	public function account() {
+		$this->set('title_for_layout', 'My account');
+		
 		$account = $this->Account->find('first', Me::id());
 		$this->set('account', $account);
 		if (empty($this->request->data)) {
