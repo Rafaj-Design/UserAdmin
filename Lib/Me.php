@@ -90,7 +90,7 @@ class Me {
 	}
 	
 	public static function teamId() {
-		return 1;
+		return self::id();
 		
 		$team = self::team();
 		return (int)$team['id'];
