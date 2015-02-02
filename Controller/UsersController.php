@@ -73,6 +73,10 @@ class UsersController extends UserAdminAppController {
 			$this->checkIfDefaultDataExists();
 			$account = Authsome::login($this->data['Account']);
 			if ($account) {
+				$remember = (isset($this->data['Account']['remember']) && !empty($this->data['Account']['remember']));
+				if ($remember) {
+					Authsome::persist('2 weeks');
+				}
 	        	Me::reload($account);
 	        	Error::add('You have been successfully logged in', Error::TypeOk);
 	        	

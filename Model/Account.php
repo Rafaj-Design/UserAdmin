@@ -90,6 +90,8 @@ class Account extends UserAdminAppModel {
         )
     );
 
+	public $hasMany = array('LoginToken');
+
 	public $hasAndBelongsToMany = array(
 		'Team' => array(
 			'className' => 'Team',
@@ -131,6 +133,33 @@ class Account extends UserAdminAppModel {
                     'Account.password' => $password,
                 );
                 break;
+			case 'cookie':
+				Error::add('Cookie login!', Error::TypeInfo);
+				list($token, $userId) = split(':', $credentials['token']);
+				$duration = $credentials['duration'];
+
+				$loginToken = $this->LoginToken->find('first', array(
+					'conditions' => array(
+						'account_id' => $userId,
+						'token' => $token,
+						'duration' => $duration,
+						'used' => false,
+						'expires <=' => date('Y-m-d H:i:s', strtotime($duration)),
+					),
+					'contain' => false
+				));
+
+				if (!$loginToken) {
+					return false;
+				}
+
+				$loginToken['LoginToken']['used'] = true;
+				$this->LoginToken->save($loginToken);
+
+				$conditions = array(
+					'Account.id' => $loginToken['LoginToken']['account_id']
+				);
+				break;
             default:
                 return null;
         }
@@ -214,6 +243,21 @@ class Account extends UserAdminAppModel {
 		$options['conditions'] = array('Account.id' => 1);
 		$data = $this->find('first', $options);
 		return $data;
+	}
+	
+	public function authsomePersist($user, $duration) {
+		$token = md5(uniqid(mt_rand(), true));
+		$userId = $user['Account']['id'];
+		
+		$this->LoginToken->create(array(
+			'account_id' => $userId,
+			'token' => $token,
+			'duration' => $duration,
+			'expires' => date('Y-m-d H:i:s', strtotime($duration)),
+		));
+		$this->LoginToken->save();
+
+		return "${token}:${userId}";
 	}
 	
 }
