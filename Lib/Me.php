@@ -49,6 +49,10 @@ class Me {
 		}
 	}
 	
+	public static function isDemoAccount() {
+		return (bool)self::get('demo');
+	}
+	
 	public static function teams() {
 		self::prepareSession();
 		return self::$session->read('Auth.Teams');

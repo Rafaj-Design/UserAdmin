@@ -78,6 +78,9 @@ class UsersController extends UserAdminAppController {
 					Authsome::persist('2 weeks');
 				}
 	        	Me::reload($account);
+				if (Me::isDemoAccount()) {
+					Error::add(__('You are logged in as a demo user, you won\'t be able to save or modify any data!'), Error::TypeInfo);
+				}
 	        	Error::add('You have been successfully logged in', Error::TypeOk);
 	        	
 	        	$teams = Me::teams();
