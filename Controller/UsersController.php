@@ -89,6 +89,19 @@ class UsersController extends UserAdminAppController {
 		        	return $this->redirect(array('plugin' => null, 'controller' => 'teams', 'action' => 'selector'));
 	        	}
 	        	elseif (count($teams) == 0) {
+	                $this->Team->create();
+					$data['Team']['name'] = $account['Account']['username'];
+					$data['Team']['identifier'] = $account['Account']['username'];
+					$team = $this->Team->save($data);
+					
+					$account['Team']['Team'][] = $team['Team']['id'];
+					
+					$this->Account->id = $account['Account']['id'];
+					$this->Account->dontEncodePassword = true;
+					$account = $this->Account->save($account);
+					
+					return $this->login();
+					
 		        	Error::add('There is no team?! Mate, what did you do this time?!!!!', Error::TypeError);
 	        	}
 	        	else {
@@ -110,9 +123,21 @@ class UsersController extends UserAdminAppController {
 		if ($this->request->is('post')) {
             $this->Account->create();
             $this->request->data['Account']['lastlogin'] = '00-00-0000 00:00:00';
-    		$this->request->data['Team']['Team'][] = 1;
-
-            if ($this->Account->save($this->request->data)) {
+			
+			$account = $this->Account->save($this->request->data);
+            if ($account) {
+            	
+                $this->Team->create();
+				$data['Team']['name'] = $account['Account']['username'];
+				$data['Team']['identifier'] = $account['Account']['username'];
+				$team = $this->Team->save($data);
+				
+				$account['Team']['Team'][] = $team['Team']['id'];
+				
+				$this->Account->id = $account['Account']['id'];
+				$this->Account->dontEncodePassword = true;
+				$account = $this->Account->save($account);
+            	
                 Error::add('Registration has been finished successfully.', Error::TypeOk);
                 $this->login();
             }
@@ -132,11 +157,9 @@ class UsersController extends UserAdminAppController {
 		}
 		else {
 			$this->Account->id = Me::id();
-			//$username = $this->request->data['Account']['username'];
 			unset($this->request->data['Account']['username']);
 			if (empty($this->request->data['Account']['password']) && !empty($account)) {
 				$this->request->data['Account']['password'] = $account['Account']['password'];
-				$this->request->data['Account']['password2'] = $account['Account']['password'];
 				$this->Account->dontEncodePassword = true;
 			}
 			$ok = $this->Account->save($this->request->data, true);

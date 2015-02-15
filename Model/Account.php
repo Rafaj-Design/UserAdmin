@@ -83,10 +83,6 @@ class Account extends UserAdminAppModel {
                 'rule'    => array('minLength', '8'),
 				'message' => 'Minimum 8 characters long',
             ),
-		    'identicalFieldValues' => array(
-				'rule' => array('identicalFieldValues', 'password2'), 
-				'message' => 'Passwords don\'t match' 
-			)
         )
     );
 
@@ -113,7 +109,7 @@ class Account extends UserAdminAppModel {
 	
     public function beforeSave($options = array()) {
 	    if (isset($this->data[$this->alias]['password']) && !$this->dontEncodePassword) {
-	        $this->data[$this->alias]['password'] = AuthComponent::password($this->data[$this->alias]['password']);
+	        $this->data[$this->alias]['password'] = Security::hash($this->data[$this->alias]['password'], 'sha1', true);
 	    }
 	    return true;
 	}

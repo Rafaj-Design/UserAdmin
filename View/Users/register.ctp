@@ -49,16 +49,6 @@
 			'placeholder' => 'mySup3rS3cr3tP4ssw0rd'
 		)); ?>
 	</div>
-	<div class="input-group">
-		<span class="input-group-addon"><i class="fa fa-key"></i></span>
-		<?= $this->Form->input('password2', array(
-			'label' => false,
-			'div' => false,
-			'type' => 'password',
-			'class' => 'form-control',
-			'placeholder' => 'mySup3rS3cr3tP4ssw0rd again for verification'
-		)); ?>
-	</div>
 	<div id="remember-me-wrapper" class="remember-me-wrapper">
 		<div class="row">
 			<div class="col-xs-6">
