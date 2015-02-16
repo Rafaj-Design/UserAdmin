@@ -8,7 +8,7 @@ class UsersController extends UserAdminAppController {
 	
 	public $layout = 'default';
 	
-	public $uses = array('UserAdmin.Account', 'UserAdmin.Team');
+	public $uses = array('UserAdmin.Account', 'UserAdmin.Team', 'UserAdmin.Role');
 	
 	public $components = array('Paginator');
 	
@@ -16,10 +16,25 @@ class UsersController extends UserAdminAppController {
 	
 	
 	public function beforeFilter() {
-		parent::beforeFilter();		
+	    if (isset($this->request->query['changeTeam'])) {
+		    Me::selectTeam($this->request->query['changeTeam']);
+		    $this->reloadRole();
+		    return $this->redirect('/');
+	    }
+		parent::beforeFilter();
 	}
 	
+	
 	// Security
+	
+	private function reloadRole() {
+	    $role = $this->Role->getForAccountAndTeam(Me::id(), Me::teamId());
+	    if (!$role || empty($role)) {
+		    Error::add(WBA('You don\'t have permissions to access this team'), Error::TypeError);
+		    //return $this->redirect(array('controller' => 'users', 'action' => 'logout'));
+	    }
+	    Me::role($role);
+	}
 	
 	public function checkSecurity() {
 		if (!(bool)Me::id()) {
@@ -28,7 +43,7 @@ class UsersController extends UserAdminAppController {
 			}
 		}
 	}
-
+	
 	
 	// Custom page methods
 	
@@ -41,6 +56,7 @@ class UsersController extends UserAdminAppController {
 		);
 		//$this->paginator->options(array('url' => array('controller' => 'users', 'action' => 'userlist')));
 		$this->Account->recursive = 0;
+		
 		
 		$search = $this->request->query('search');
 		$this->set('search', $search);
@@ -55,7 +71,10 @@ class UsersController extends UserAdminAppController {
 		else {
 			$where = array();
 		}
-		$this->set('accounts', $this->Paginator->paginate('Account', $where, array('lastname')));
+		
+		$this->Paginator->settings = $this->Account->getAllWithRolesOptions();
+		$account = $this->Paginator->paginate('Account', $where, array('lastname'));
+		$this->set('accounts', $account);
 	}
 	
 	public function logout() {
@@ -78,17 +97,23 @@ class UsersController extends UserAdminAppController {
 					Authsome::persist('2 weeks');
 				}
 	        	Me::reload($account);
+	        	
+	        	$this->reloadRole();
+	        	
 				if (Me::isDemoAccount()) {
 					Error::add(__('You are logged in as a demo user, you won\'t be able to save or modify any data!'), Error::TypeInfo);
 				}
 	        	Error::add('You have been successfully logged in', Error::TypeOk);
 	        	
 	        	$teams = Me::teams();
+				/*
+				// Disable selector
 	        	if (count($teams) > 1) {
-	        		
 		        	return $this->redirect(array('plugin' => null, 'controller' => 'teams', 'action' => 'selector'));
 	        	}
-	        	elseif (count($teams) == 0) {
+	        	else
+				*/
+	        	if (count($teams) == 0) {
 	                $this->Team->create();
 					$data['Team']['name'] = $account['Account']['username'];
 					$data['Team']['identifier'] = $account['Account']['username'];
@@ -125,8 +150,7 @@ class UsersController extends UserAdminAppController {
             $this->request->data['Account']['lastlogin'] = '00-00-0000 00:00:00';
 			
 			$account = $this->Account->save($this->request->data);
-            if ($account) {
-            	
+            if ($account) {            	
                 $this->Team->create();
 				$data['Team']['name'] = $account['Account']['username'];
 				$data['Team']['identifier'] = $account['Account']['username'];
@@ -137,6 +161,8 @@ class UsersController extends UserAdminAppController {
 				$this->Account->id = $account['Account']['id'];
 				$this->Account->dontEncodePassword = true;
 				$account = $this->Account->save($account);
+				
+				$role = $this->Role->createRole($account['Account']['id'], $team['Team']['id']);
             	
                 Error::add('Registration has been finished successfully.', Error::TypeOk);
                 $this->login();
@@ -177,8 +203,18 @@ class UsersController extends UserAdminAppController {
 		
 	}
 	
-	public function edit() {
+	public function edit($accountId) {
+		if ($this->request->is('post')) {
+			
+		}
 		
+		$roles = $this->Role->roles();
+		$this->set('roles', $roles);
+		
+		$account = $this->Account->read(null, $accountId);
+		$this->set('account', $account);
+		
+		$this->set('role', $this->Role->getForAccountAndTeam($accountId, Me::teamId()));
 	}
 	
 	public function delete() {

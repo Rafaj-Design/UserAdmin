@@ -9,7 +9,7 @@ class Team extends UserAdminAppModel {
 		'name' => array(
 			'notEmpty' => array(
 				'rule' => array('notEmpty'),
-				//'message' => 'Your custom message here',
+				'message' => 'Name of the team can not be empty',
 				//'allowEmpty' => false,
 				//'required' => false,
 				//'last' => false, // Stop validation after this rule
@@ -51,6 +51,29 @@ class Team extends UserAdminAppModel {
 		$data['Team']['name'] = 'Admin Team';
 		$data['Team']['identifier'] = 'admin';
 		return $this->save($data, true);
+	}
+	
+	public function getAllOptions() {
+		$options = array();
+		$options['fields'] = array('*');
+		$options['joins'] = array(
+		    array('table' => 'teams_accounts',
+		        'alias' => 'AccountsJoin',
+		        'type' => 'LEFT',
+		        'conditions' => array(
+		            'Team.id = AccountsJoin.team_id',
+		        )
+		    ),
+		);
+		$options['conditions'] = array('AccountsJoin.account_id' => Me::id());
+		$options['order'] = array('Team.name' => 'ASC');
+		return $options;
+	}
+	
+	public function getAll() {
+		$options = getAllOptions();
+		$data = $this->find('all', $options);
+		return $data;
 	}
 	
 	public function adminTeam() {

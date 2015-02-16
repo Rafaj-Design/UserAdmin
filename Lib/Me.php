@@ -12,6 +12,7 @@ class Me {
 	protected static $componentCollection;
 	protected static $session;
 	protected static $account;
+	protected static $role;
 	protected static $didLoadTeams = false;
 	
 	
@@ -37,7 +38,6 @@ class Me {
 	
 	public static function reload($data) {
 		$user = new Account();
-		//$data = $user->read(null, Me::id());
 		if ($data) {
 			unset($data['Account']['password']);
 			unset($data['Account']['password_token']);
@@ -51,6 +51,16 @@ class Me {
 	
 	public static function isDemoAccount() {
 		return (bool)self::get('demo');
+	}
+	
+	public static function role($role=null) {
+		if ($role) {
+			self::$session->write('Auth.Role', $role);
+		}
+		if (!self::$role) {
+			self::$role = self::$session->read('Auth.Role');
+		}
+		return self::$role;
 	}
 	
 	public static function teams() {
@@ -94,10 +104,7 @@ class Me {
 	}
 	
 	public static function teamId() {
-		return self::id();
-		
-		$team = self::team();
-		return (int)$team['id'];
+		return (int)self::team('id');
 	}
 	
 	public static function gravatar($size) {
@@ -127,6 +134,37 @@ class Me {
 		self::$session->write('Auth.Account', null);
 		self::$session->write('Auth.Teams', null);
 		self::$session->write('Auth.Team', null);
+		self::$session->write('Auth.Role', null);
 	}
+			
+	public static function minTranslator() {
+		return true;
+	}
+			
+	public static function minDev() {
+		$role = self::role();
+		return ($role == 'dev' || $role == 'admin');
+	}
+			
+	public static function minAdmin() {
+		$role = self::role();
+		return ($role == 'admin');
+	}
+			
+	public static function isTranslator() {
+		$role = self::role();
+		return ($role == 'trans');
+	}
+			
+	public static function isDev() {
+		$role = self::role();
+		return ($role == 'dev');
+	}
+			
+	public static function isAdmin() {
+		$role = self::role();
+		return ($role == 'admin');
+	}
+			
 			
 }

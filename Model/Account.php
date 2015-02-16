@@ -13,6 +13,7 @@ class Account extends UserAdminAppModel {
 	    'fullname' => 'CONCAT(Account.lastname, ", ", Account.firstname)'
 	);
 	
+	
     public $validate = array(
         'username' => array(
             'required' => array(
@@ -86,11 +87,11 @@ class Account extends UserAdminAppModel {
         )
     );
 
-	public $hasMany = array('LoginToken');
+	public $hasMany = array('UserAdmin.LoginToken', 'UserAdmin.Role');
 
 	public $hasAndBelongsToMany = array(
 		'Team' => array(
-			'className' => 'Team',
+			'className' => 'UserAdmin.Team',
 			'joinTable' => 'teams_accounts',
 			'foreignKey' => 'account_id',
 			'associationForeignKey' => 'team_id',
@@ -185,6 +186,44 @@ class Account extends UserAdminAppModel {
     }
     
 	// Custom methods
+	
+	public function getAllWithRolesOptions() {
+		$options = array();
+		$options['fields'] = array('*');
+		$options['joins'] = array(
+		    array('table' => 'roles',
+		        'alias' => 'Role',
+		        'type' => 'LEFT',
+		        'conditions' => array(
+		            'Account.id = Role.account_id',
+		        )
+		    ),
+		);
+		$options['conditions'] = array('Role.team_id' => Me::teamId());
+		$options['order'] = array('Account.lastname' => 'ASC');
+		return $options;
+	}
+	
+	/*
+	public function getOneWithRolesOptions($accountId) {
+		$options = array();
+		$options['fields'] = array('*');
+		$options['joins'] = array(
+		    array('table' => 'roles',
+		        'alias' => 'Role',
+		        'type' => 'LEFT',
+		        'conditions' => array(
+		            'Account.id' => 'Role.account_id',
+		        )
+		    ),
+		);
+		//$options['conditions'] = array('Role.account_id' => (int)$accountId, 'Role.team_id' => (int)Me::teamId());
+		$data = $this->find('first', $options);
+		debug($data);
+		die();
+		return $data;
+	}
+	//*/
 	
 	public function verifiedAccountInMyTeam($userId) {
 		$options = array();
