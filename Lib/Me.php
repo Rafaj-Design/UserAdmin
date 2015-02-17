@@ -37,7 +37,7 @@ class Me {
 	}
 	
 	public static function reload($data) {
-		$user = new Account();
+		//$user = new Account();
 		if ($data) {
 			unset($data['Account']['password']);
 			unset($data['Account']['password_token']);
@@ -141,7 +141,7 @@ class Me {
 		return true;
 	}
 			
-	public static function minDev() {
+	public static function minDeveloper() {
 		$role = self::role();
 		return ($role == 'dev' || $role == 'admin');
 	}
@@ -156,7 +156,7 @@ class Me {
 		return ($role == 'trans');
 	}
 			
-	public static function isDev() {
+	public static function isDeveloper() {
 		$role = self::role();
 		return ($role == 'dev');
 	}

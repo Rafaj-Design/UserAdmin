@@ -248,6 +248,16 @@ class Account extends UserAdminAppModel {
 	}
 	
 	public function getOne($accountId) {
+		$data = $this->read(null, (int)$accountId);;
+        if (!$data) return false;
+        unset($data['Account']['password']);	
+        unset($data['Account']['password_token']);
+        if (isset($data['Account'])) $data['Account']['gravatar_url'] = 'https://www.gravatar.com/avatar/'.md5($data['Account']['email']).'.jpg';
+        return $data;
+	}
+	
+	/*
+	public function getOne($accountId) {
 		$data = $this->verifiedAccountInMyTeam($accountId);
         if (!$data) return false;
         unset($data['Account']['password']);	
@@ -255,6 +265,7 @@ class Account extends UserAdminAppModel {
         if (isset($data['Account'])) $data['Account']['gravatar_url'] = 'https://www.gravatar.com/avatar/'.md5($data['Account']['email']).'.jpg';
         return $data;
 	}
+	//*/
 	
 	public function createAdminAccount() {
 		$data = array();
@@ -377,6 +388,48 @@ class Account extends UserAdminAppModel {
 		
 		$this->create();
 		return $this->save($data);
+	}
+	
+	private function GUID() {
+		if (function_exists('com_create_guid') === true) {
+			return trim(com_create_guid(), '{}');
+		}
+		return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
+	}
+	
+	public function getPasswordToken($accountId) {
+		$this->id = (int)$accountId;
+		$token = $this->GUID();
+		$ok = $this->saveField('password_token', $token);
+		if ($ok) return $token;
+		else return false;
+	}
+	
+    public function getAccountByPasswordToken($token) {
+	    $options = array();
+		$options['conditions'] = array('Account.password_token' => $token);
+		$data = $this->find('all', $options);
+		if (count($data) > 0) {
+			return $data[0]['Account'];
+		}
+		return false;
+    }
+    
+	public function isTokenValid($token) {
+		$user = $this->getAccountByPasswordToken($token);
+		if (!empty($user)) {
+			if (strtotime($user['modified']) < (time() - (24 * 60 * 60))) return false;
+			else return (int)$user['id'];
+		}
+		else return false;
+	}
+	
+	public function updatePasswords($data) {
+		$this->validator()->remove('firstname');
+		$this->validator()->remove('lastname');
+		$data['Account']['password_token'] = '';
+		$data['Account']['enabled'] = 1;
+		return $this->save($data, true);
 	}
 	
 }

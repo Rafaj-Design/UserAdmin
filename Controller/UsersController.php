@@ -2,6 +2,7 @@
 
 App::uses('UserAdminAppController', 'UserAdmin.Controller');
 App::uses('Me', 'UserAdmin.Lib');
+App::uses('PasswordMailer', 'UserAdmin.Lib/Email');
 
 
 class UsersController extends UserAdminAppController {
@@ -26,6 +27,21 @@ class UsersController extends UserAdminAppController {
 	}
 	
 	
+	// Private helper methods
+	
+	private function checkIfDefaultDataExists() {
+		if (!$this->Team->find('first', 1)) {
+			if (!$this->Team->createAdminTeam()) {
+				// TODO: handle error
+			}
+		}
+		if (!$this->Account->find('first', 1)) {
+			if (!$this->Account->createAdminAccount()) {
+				// TODO: handle error
+			}
+		}
+	}
+	
 	// Security
 	
 	private function reloadRole() {
@@ -39,7 +55,8 @@ class UsersController extends UserAdminAppController {
 	
 	public function checkSecurity() {
 		if (!(bool)Me::id()) {
-			if ($this->action != 'logout' && $this->action != 'login' && $this->action != 'register' && $this->action != 'forgot-password') {
+			$allow = array('login', 'register', 'logout', 'resetpasswd', 'newpasswd', 'finishreg');
+			if (!in_array($this->action, $allow)) {
 				return $this->redirect(array('controller' => 'users', 'action' => 'logout'));
 			}
 		}
@@ -55,9 +72,7 @@ class UsersController extends UserAdminAppController {
 			'limit' => 10,
 			'url' => array('plugin' => null),
 		);
-		//$this->paginator->options(array('url' => array('controller' => 'users', 'action' => 'userlist')));
 		$this->Account->recursive = 0;
-		
 		
 		$search = $this->request->query('search');
 		$this->set('search', $search);
@@ -81,7 +96,6 @@ class UsersController extends UserAdminAppController {
 	public function logout() {
 		Me::logout();
 		AuthsomeComponent::logout();
-		//Error::add('You have been successfully logged out', Error::TypeOk);
 	    return $this->redirect(array('controller' => 'users', 'action' => 'login'));
 	}
 	
@@ -98,11 +112,14 @@ class UsersController extends UserAdminAppController {
 					Authsome::persist('2 weeks');
 				}
 	        	Me::reload($account);
+	        	if (count($account['Team']) > 0) {
+		        	Me::selectTeam($account['Team'][0]['id']);
+	        	}
 	        	$this->reloadRole();
 	        	$this->Role->setLastLogin($account['Account']['id']);
 	        	
 				if (Me::isDemoAccount()) {
-					Error::add(__('You are logged in as a demo user, you won\'t be able to save or modify any data!'), Error::TypeInfo);
+					Error::add(WBA('You are logged in as a demo user, you won\'t be able to save or modify any data!'), Error::TypeInfo);
 				}
 	        	Error::add('You have been successfully logged in', Error::TypeOk);
 	        	
@@ -177,7 +194,7 @@ class UsersController extends UserAdminAppController {
 	public function account() {
 		$this->set('title_for_layout', 'My account');
 		
-		$account = $this->Account->find('first', Me::id());
+		$account = $this->Account->read(null, Me::id());
 		$this->set('account', $account);
 		if (empty($this->request->data)) {
 			$this->request->data = $account;
@@ -207,7 +224,13 @@ class UsersController extends UserAdminAppController {
 	public function edit($accountId) {
 		if (isset($this->request->data['id'])) {
 			if ($this->request->is('post') && ($this->request->data['id'] != Me::id())) {
-				$this->Role->updateRole($this->request->data['role'], $accountId);
+				$ok = $this->Role->updateRole($this->request->data['role'], $accountId);
+				if ($ok) {
+					Error::add(WBA('Permissions have been successfully saved.'));
+					if (isset($this->request->data['save'])) {
+						return $this->redirect(array('action' => 'index'));
+					}
+				}
 			}
 		}
 		
@@ -271,7 +294,6 @@ class UsersController extends UserAdminAppController {
 							$this->Role->saveUserRole($id, 'view', '0000-00-00 00:00:00');
 							$teamId = Me::teamId();
 							$this->Account->query("INSERT INTO `teams_accounts` (`team_id`, `account_id`) VALUES ($teamId, $id);");
-							
 					    	$mailer = new PasswordMailer();
 					    	if ($mailer->sendInvite($this->request->data['Account']['email'], null)) {
 						    	Error::add(WBA('Email with instructions has been sent to the user.'), Error::TypeOk);
@@ -291,18 +313,18 @@ class UsersController extends UserAdminAppController {
 	public function unlink($id, $username=null, $redirectOverride=false) {
     	if (!Me::minAdmin() || !$this->Account->verifiedAccountInMyTeam($id) || $id == Me::id()) {
     		if ($id == Me::id()) {
-	    		Error::add('It would not be very wise to unlink yourself from this account!', Error::TypeWarning);
+	    		Error::add(WBA('It would not be very wise to unlink yourself from this account!'), Error::TypeWarning);
     		}
 			else {
-				Error::add('User can not be deleted.', Error::TypeError);
+				Error::add(WBA('User can not be removed from the team.'), Error::TypeError);
 			}
 			$this->redirect(array('controller' => 'users', 'action' => 'index'));
 		}
 		if ($this->Account->unlinkUser($id)) {
-			Error::add('User has been unlinked from this account.');
+			Error::add(WBA('User has been unlinked from this team.'));
 		}
 		else {
-			Error::add('Unable to unlink user.', Error::TypeError);
+			Error::add(WBA('Unable to unlink user.'), Error::TypeError);
 		}
 		return $this->redirect(($redirectOverride ? $redirectOverride : array('action' => 'index')));
 	}
@@ -312,20 +334,112 @@ class UsersController extends UserAdminAppController {
 		return $this->unlink($id, $username, '/users/invite/?q='.$this->request->query['q']);
 	}	
 
-	// Private methods
-	
-	private function checkIfDefaultDataExists() {
-		if (!$this->Team->find('first', 1)) {
-			if (!$this->Team->createAdminTeam()) {
-				// TODO: handle error
-			}
-		}
-		if (!$this->Account->find('first', 1)) {
-			if (!$this->Account->createAdminAccount()) {
-				// TODO: handle error
-			}
-		}
+	public function finishreg() {
+		$this->set('title_for_layout', WBA('Finish registration'));
+    	
+	    $this->tryLoadOuterLayout();
+	    $token = false;
+	    
+	    $this->set('token', $this->request->query['registration_token']);
+	    
+	    // If POST is sent with a new password
+	    if (isset($this->request->data['registration_token'])) {
+	    	$token = $this->request->data['registration_token'];
+	    	$userId = $this->Account->isTokenValid($token);
+	    	if (!empty($userId) && $userId) {
+				$this->Account->id = $userId;
+				$this->request->data['Account']['password_token'] = '';
+				$this->request->data['Account']['enabled'] = 1;
+				$ok = $this->Account->save($this->request->data);
+				if ($ok) {
+					Error::add(WBA('You have finished your registration successfully. Please login now.'), Error::TypeOk);
+					return $this->redirect('/');
+				}
+				else {
+					Error::add(WBA('Unable to finish your registration. Please try again or contact the system administrator.'), Error::TypeError);
+				}
+	    	}
+	    	else {
+		    	Error::add(WBA('Invalid password recovery token, please try again.'), Error::TypeError);
+	    	}
+	    }
+	    else {
+    	    if (isset($this->request->query['registration_token'])) {
+			    $token = $this->request->query['registration_token'];
+			    $userId = $this->Account->isTokenValid($token);
+			    if ((bool)$userId) {
+				    $this->request->data = $this->Account->getOne($userId);
+			    }
+		    }
+		    if (!isset($userId) || !$userId) {
+			    Error::add(WBA('Invalid registration token, please try again.'), Error::TypeError);
+			    return $this->redirect('/');
+		    }
+	    }
 	}
 	
+	// Reset password
+	
+    public function resetpasswd() {
+    	$this->set('title_for_layout', WBA('Reset password'));
+    	
+	    $this->tryLoadOuterLayout();
+	    
+	    if ($this->request->is('post') && isset($this->request->data['Account']['email'])) {
+		    if (empty($this->request->data['Account']['email'])) {
+			    Error::add(WBA('Please provide your registered email address.'), Error::TypeError);
+		    }
+		    else {
+		    	$mailer = new PasswordMailer();
+		    	if ($mailer->sendPasswordReset($this->request->data['Account']['email'])) {
+			    	Error::add(WBA('Email with instructions on how to reset your password has been sent to your email address.'), Error::TypeOk);
+		    	}
+		    	return $this->redirect('/');
+		    }
+	    }
+    }
+
+    public function newpasswd() {
+    	$this->set('title_for_layout', WBA('New password'));
+    	
+	    $this->tryLoadOuterLayout();
+	    
+	    $token = false;
+	    
+	    // If POST is sent with a new password
+	    if ($this->request->is('post') && isset($this->request->data['password_token'])) {
+	    	$token = $this->request->data['password_token'];
+	    	$userId = $this->Account->isTokenValid($token);
+	    	if (!empty($userId) && $userId) {
+				$this->Account->id = $userId;
+				$ok = $this->Account->updatePasswords($this->request->data, true);
+				if ($ok) {
+					Error::add(WBA('Your password has been changed. Please login normally.'), Error::TypeOk);
+				}
+				else {
+					Error::add(WBA('Unable to update password. Please try again or contact the system administrator.'), Error::TypeError);
+				}
+				return $this->redirect('/');
+	    	}
+	    	else {
+		    	Error::add(WBA('Invalid password recovery token. You have probably tried to use it before or did reload the page, please try again.'), Error::TypeError);
+	    	}
+	    	return $this->redirect('/');
+	    }
+	    else {
+    	    if (isset($this->request->query['password_token'])) {
+			    $token = $this->request->query['password_token'];
+			    $userId = $this->Account->isTokenValid($token);
+		    }
+		    if (!isset($userId) || !$userId) {
+			    Error::add(WBA('Invalid password recovery token, please try again.'), Error::TypeError);
+			    return $this->redirect('/');
+		    }
+		    else {
+			    $this->set('token', $this->Account->getPasswordToken($userId));
+		    }
+	    }
+    }
+
 
 }
