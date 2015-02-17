@@ -87,4 +87,17 @@ class Team extends UserAdminAppModel {
 		return (int)$this->find('count');
 	}
 
+	public function deleteAccountInTeam($accountId, $teamId) {
+		/*
+	    $conditions = array();
+	    $conditions['Team.account_id'] = (int)$accountId;
+	    $conditions['Team.team_id'] = (int)$teamId;
+	    $this->deleteAll($conditions, false);
+		*/
+		$accountId = (int)$accountId;
+		$teamId = (int)$teamId;
+		$query = "DELETE `Team` FROM `teams_accounts` AS `Team` WHERE `Team`.`account_id` = $accountId AND `Team`.`team_id` = $teamId;";
+		return $this->query($query);
+    }
+    
 }

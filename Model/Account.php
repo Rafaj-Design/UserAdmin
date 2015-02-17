@@ -132,12 +132,12 @@ class Account extends UserAdminAppModel {
                 break;
 			case 'cookie':
 				Error::add('Cookie login!', Error::TypeInfo);
-				list($token, $userId) = split(':', $credentials['token']);
+				list($token, $accountId) = split(':', $credentials['token']);
 				$duration = $credentials['duration'];
 
 				$loginToken = $this->LoginToken->find('first', array(
 					'conditions' => array(
-						'account_id' => $userId,
+						'account_id' => $accountId,
 						'token' => $token,
 						'duration' => $duration,
 						'used' => false,
@@ -225,7 +225,7 @@ class Account extends UserAdminAppModel {
 	}
 	//*/
 	
-	public function verifiedAccountInMyTeam($userId) {
+	public function verifiedAccountInMyTeam($accountId) {
 		$options = array();
 		$options['fields'] = array('*');
 		$options['joins'] = array(
@@ -237,9 +237,9 @@ class Account extends UserAdminAppModel {
 		        )
 		    ),
 		);
-		$options['conditions'] = array('Account.id' => (int)$userId);
+		$options['conditions'] = array('Account.id' => (int)$accountId);
 		$data = $this->find('first', $options);
-		if (isset($data['Teams'])) foreach ($data['Teams'] as $team) {
+		if (isset($data['Team'])) foreach ($data['Team'] as $team) {
 			if ($team['id'] == Me::teamId()) {
 				return $data;
 			}
@@ -247,8 +247,8 @@ class Account extends UserAdminAppModel {
         return false;
 	}
 	
-	public function getOne($userId) {
-		$data = $this->verifiedAccountInMyTeam($userId);
+	public function getOne($accountId) {
+		$data = $this->verifiedAccountInMyTeam($accountId);
         if (!$data) return false;
         unset($data['Account']['password']);	
         unset($data['Account']['password_token']);
@@ -282,17 +282,101 @@ class Account extends UserAdminAppModel {
 	
 	public function authsomePersist($user, $duration) {
 		$token = md5(uniqid(mt_rand(), true));
-		$userId = $user['Account']['id'];
+		$accountId = $user['Account']['id'];
 		
 		$this->LoginToken->create(array(
-			'account_id' => $userId,
+			'account_id' => $accountId,
 			'token' => $token,
 			'duration' => $duration,
 			'expires' => date('Y-m-d H:i:s', strtotime($duration)),
 		));
 		$this->LoginToken->save();
 
-		return "${token}:${userId}";
+		return "${token}:${accountId}";
+	}
+	
+	private function addGravatars($data) {
+		foreach ($data as $key=>$account) {
+			$data[$key]['Account']['gravatar_url'] = 'https://www.gravatar.com/avatar/'.md5($account['Account']['email']).'.jpg';
+		}
+		return $data;
+	}
+	
+	public function isUsername($username) {
+		return (bool)$this->find('count', array('conditions' => array('Account.username' => $username)));
+	}
+	
+	public function isEmail($email) {
+		return (bool)$this->find('count', array('conditions' => array('Account.email' => $email)));
+	}
+	
+    public function getAccountByEmail($email) {
+	    $options = array();
+		$options['conditions'] = array('Account.email' => $email);
+		$options['limit'] = 1;
+		$data = $this->find('all', $options);
+		$data = $this->addGravatars($data);
+		if (count($data) > 0) {
+			return $data[0]['Account'];
+		}
+		return false;
+    }
+    
+	public function searchForNickname($nickname) {
+		$this->unbindModel(array('hasAndBelongsToMany' => array('Group', 'Teams')));
+		
+		$options = array();
+		$options['fields'] = array('id', 'username', 'email', 'firstname', 'lastname');
+		$options['conditions'] = array('username LIKE \'%'.$nickname.'%\'', 'enabled' => 1);
+		$options['limit'] = 50;
+		$data = $this->find('all', $options);
+		
+		foreach ($data as $key=>$account) {
+			$data[$key]['Account']['gravatar_url'] = 'https://www.gravatar.com/avatar/'.md5($account['Account']['email']).'.jpg';
+			$member = false;
+			if (isset($account['Role']) && !empty($account['Role'])) {
+				foreach ($account['Role'] as $role) {
+					if ($role['team_id'] == Me::teamId()) {
+						$member = true;
+					}
+				}
+			}
+			$data[$key]['Account']['member'] = $member;
+			if (!empty($data[$key]['Account']['lastname'])) {
+				$data[$key]['Account']['lastname'] = ucfirst(substr($data[$key]['Account']['lastname'], 0, 1).'*****');
+			}
+			else {
+				$data[$key]['Account']['lastname'] = '';
+			}
+			unset($data[$key]['Account']['email']);
+		}
+		
+		return $data;
+	}
+	
+	public function unlinkUser($accountId) {
+		if (!Me::minAdmin()) return false;
+		$user = $this->getOne($accountId);
+		if ($user['Account']['id'] != Me::id()) {
+			$this->Role->deleteAccountInTeam($accountId, Me::teamId());
+			$this->Team->deleteAccountInTeam($accountId, Me::teamId());
+			return true;
+		}
+		return false;
+	}
+	
+	public function saveInvitation($data) {
+		$this->validator()->remove('username');
+		$this->validator()->remove('password');
+		$this->validator()->remove('password2');
+		
+		$data = array('Account' => $data['Account']);
+		$data['Account']['username'] = '';
+		$data['Account']['password'] = '';
+		$data['Account']['lastlogin'] = '0000-00-00 00:00:00';
+		
+		$this->create();
+		return $this->save($data);
 	}
 	
 }

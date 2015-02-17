@@ -18,6 +18,7 @@ class UsersController extends UserAdminAppController {
 	public function beforeFilter() {
 	    if (isset($this->request->query['changeTeam'])) {
 		    Me::selectTeam($this->request->query['changeTeam']);
+		    $this->Role->setLastLogin(Me::id());
 		    $this->reloadRole();
 		    return $this->redirect('/');
 	    }
@@ -97,8 +98,8 @@ class UsersController extends UserAdminAppController {
 					Authsome::persist('2 weeks');
 				}
 	        	Me::reload($account);
-	        	
 	        	$this->reloadRole();
+	        	$this->Role->setLastLogin($account['Account']['id']);
 	        	
 				if (Me::isDemoAccount()) {
 					Error::add(__('You are logged in as a demo user, you won\'t be able to save or modify any data!'), Error::TypeInfo);
@@ -191,7 +192,7 @@ class UsersController extends UserAdminAppController {
 			$ok = $this->Account->save($this->request->data, true);
 			if ($ok) {
 				Error::add('Your details have been successfully saved.');
-				$this->redirect(array('controller' => 'users', 'action' => 'account'));
+				return $this->redirect(array('controller' => 'users', 'action' => 'account'));
 			}
 			else {
 				Error::add('Unable to save your details. Please try again or contact system administrator.', Error::TypeError);
@@ -204,8 +205,10 @@ class UsersController extends UserAdminAppController {
 	}
 	
 	public function edit($accountId) {
-		if ($this->request->is('post')) {
-			
+		if (isset($this->request->data['id'])) {
+			if ($this->request->is('post') && ($this->request->data['id'] != Me::id())) {
+				$this->Role->updateRole($this->request->data['role'], $accountId);
+			}
 		}
 		
 		$roles = $this->Role->roles();
@@ -214,6 +217,11 @@ class UsersController extends UserAdminAppController {
 		$account = $this->Account->read(null, $accountId);
 		$this->set('account', $account);
 		
+		if ($account['Account']['id'] == Me::id()) {
+			Error::add(WBA('You can not change your own permissions'), Error::TypeError);
+			return $this->redirect(array('action' => 'index'));
+		}
+		
 		$this->set('role', $this->Role->getForAccountAndTeam($accountId, Me::teamId()));
 	}
 	
@@ -221,6 +229,89 @@ class UsersController extends UserAdminAppController {
 		
 	}
 	
+	public function invite($id=false) {
+		$this->set('title_for_layout', 'Manage users');
+		
+		if (Me::minAdmin()) {
+			$id = (int)$id;
+			if ($id) {
+				$this->Role->saveUserRole($id, 'view', '0000-00-00 00:00:00');
+				$teamId = Me::teamId();
+				$this->Account->query("INSERT INTO `teams_accounts` (`team_id`, `account_id`) VALUES ($teamId, $id);");
+				Error::add(WBA('User has been linked to this account successfully.'), Error::TypeOk);
+				return $this->redirect('/users/invite/?q='.$this->request->query['q']);
+			}
+			else if (isset($this->request->data['Account']['email'])) {
+				if (empty($this->request->data['Account']['email']) || empty($this->request->data['Account']['email']) || empty($this->request->data['Account']['email'])) {
+					Error::add(WBA('All the fields are mandatory, please check the values and try again.'), Error::TypeError);
+				}
+				else {
+					$id = 0;
+					$ok = false;
+					$creating = true;
+					$account = $this->Account->getAccountByEmail($this->request->data['Account']['email']);
+					if (!empty($account) && isset($account['id'])) {
+						$id = $account['id'];
+						$ok = true;
+						$creating = false;
+					}
+					else {
+				    	$account = $this->Account->saveInvitation($this->request->data);
+				    	if (isset($account['Account']['id'])) {
+					    	$id = $account['Account']['id'];
+							$ok = true;
+						}
+					}
+					if ($id && $ok) {
+						if (!$creating) {
+							Error::add(WBA('User with this email address is already member of this team.'), Error::TypeWarning);
+							Error::add(WBA('If the user is unable to access their account please tell them to reset their password.'), Error::TypeInfo);
+						}
+						else {
+							$this->Role->saveUserRole($id, 'view', '0000-00-00 00:00:00');
+							$teamId = Me::teamId();
+							$this->Account->query("INSERT INTO `teams_accounts` (`team_id`, `account_id`) VALUES ($teamId, $id);");
+							
+					    	$mailer = new PasswordMailer();
+					    	if ($mailer->sendInvite($this->request->data['Account']['email'], null)) {
+						    	Error::add(WBA('Email with instructions has been sent to the user.'), Error::TypeOk);
+					    	}
+					    	return $this->redirect('/users/invite/');
+						}
+					}
+					else {
+						Error::add(WBA('Unable to finish the registration, something went wrong.'), Error::TypeError);
+					}
+				}
+			}
+		}
+
+	}
+	
+	public function unlink($id, $username=null, $redirectOverride=false) {
+    	if (!Me::minAdmin() || !$this->Account->verifiedAccountInMyTeam($id) || $id == Me::id()) {
+    		if ($id == Me::id()) {
+	    		Error::add('It would not be very wise to unlink yourself from this account!', Error::TypeWarning);
+    		}
+			else {
+				Error::add('User can not be deleted.', Error::TypeError);
+			}
+			$this->redirect(array('controller' => 'users', 'action' => 'index'));
+		}
+		if ($this->Account->unlinkUser($id)) {
+			Error::add('User has been unlinked from this account.');
+		}
+		else {
+			Error::add('Unable to unlink user.', Error::TypeError);
+		}
+		return $this->redirect(($redirectOverride ? $redirectOverride : array('action' => 'index')));
+	}
+	
+	public function remove($id=false, $username=null) {
+		$id = (int)$id;
+		return $this->unlink($id, $username, '/users/invite/?q='.$this->request->query['q']);
+	}	
+
 	// Private methods
 	
 	private function checkIfDefaultDataExists() {
