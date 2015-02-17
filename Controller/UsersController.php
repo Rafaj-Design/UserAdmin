@@ -48,7 +48,7 @@ class UsersController extends UserAdminAppController {
 	    $role = $this->Role->getForAccountAndTeam(Me::id(), Me::teamId());
 	    if (!$role || empty($role)) {
 		    Error::add(WBA('You don\'t have permissions to access this team'), Error::TypeError);
-		    //return $this->redirect(array('controller' => 'users', 'action' => 'logout'));
+		    return $this->redirect(array('controller' => 'users', 'action' => 'logout'));
 	    }
 	    Me::role($role);
 	}
