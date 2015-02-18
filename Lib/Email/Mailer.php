@@ -13,7 +13,7 @@ class Mailer {
 	
 	function __construct() {
 		if (!$this->email) {
-			$this->email = new CakeEmail('gmail');
+			$this->email = new CakeEmail('aws');
 		}
 	}
 	
@@ -24,7 +24,7 @@ class Mailer {
 	}
 	
 	protected function send() {
-		$this->email->from(array('ondrej.rafaj@fuerteint.com' => 'LiveUI Robot'));
+		$this->email->from(array('robot@liveui.io' => 'LiveUI'));
 		$this->email->to($this->recipient);
 		$this->email->subject($this->subject);
 		$this->email->viewVars($this->vars);
@@ -46,7 +46,8 @@ class Mailer {
 			)
 		));
 		*/
-		return $this->email->send();
+		$ret = $this->email->send();
+		return $ret;
 	} 
 		
 }
