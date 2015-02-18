@@ -24,7 +24,7 @@ class Mailer {
 	}
 	
 	protected function send() {
-		$this->email->from(array('robot@liveui.io' => 'LiveUI Robot'));
+		$this->email->from(array('ondrej.rafaj@fuerteint.com' => 'LiveUI Robot'));
 		$this->email->to($this->recipient);
 		$this->email->subject($this->subject);
 		$this->email->viewVars($this->vars);
@@ -46,8 +46,7 @@ class Mailer {
 			)
 		));
 		*/
-		$ret = $this->email->send();
-		return $ret;
+		return $this->email->send();
 	} 
 		
 }
