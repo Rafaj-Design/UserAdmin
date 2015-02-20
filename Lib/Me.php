@@ -54,6 +54,7 @@ class Me {
 	}
 	
 	public static function role($role=null) {
+		self::prepareSession();
 		if ($role) {
 			self::$session->write('Auth.Role', $role);
 		}

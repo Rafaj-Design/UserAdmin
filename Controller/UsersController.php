@@ -21,6 +21,9 @@ class UsersController extends UserAdminAppController {
 		    Me::selectTeam($this->request->query['changeTeam']);
 		    $this->Role->setLastLogin(Me::id());
 		    $this->reloadRole();
+        	if (method_exists($this, 'loginProcess')) {
+	        	$this->loginProcess();
+        	}
 		    return $this->redirect('/');
 	    }
 		parent::beforeFilter();
@@ -117,6 +120,10 @@ class UsersController extends UserAdminAppController {
 	        	}
 	        	$this->reloadRole();
 	        	$this->Role->setLastLogin($account['Account']['id']);
+	        	
+	        	if (method_exists($this, 'loginProcess')) {
+		        	$this->loginProcess();
+	        	}
 	        	
 				if (Me::isDemoAccount()) {
 					Error::add(WBA('You are logged in as a demo user, you won\'t be able to save or modify any data!'), Error::TypeInfo);
