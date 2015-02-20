@@ -76,6 +76,11 @@ class Team extends UserAdminAppModel {
 		return $data;
 	}
 	
+	public function getOne($teamId) {
+		$data = $this->read(null, (int)$teamId);
+		return $data;
+	}
+	
 	public function adminTeam() {
 		$options = array();
 		$options['conditions'] = array('Team.id' => 1);
