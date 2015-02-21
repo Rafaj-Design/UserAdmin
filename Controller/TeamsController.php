@@ -3,6 +3,8 @@
 App::uses('UserAdminAppController', 'UserAdmin.Controller');
 App::uses('Me', 'UserAdmin.Lib');
 App::uses('Team', 'UserAdmin.Model');
+App::uses('Account', 'UserAdmin.Model');
+App::uses('Role', 'UserAdmin.Model');
 
 
 class TeamsController extends UserAdminAppController {
