@@ -34,7 +34,7 @@ class TeamsController extends UserAdminAppController {
 	}
 	
 	public function add() {
-		$this->set('title_for_layout', WBA('Create new team'));
+		$this->set('title_for_layout', ('Create new team'));
 		
 		if ($this->request->is('post')) {
 			$this->Team->create();
@@ -64,7 +64,7 @@ class TeamsController extends UserAdminAppController {
 			throw new NotFoundException(WBA('Invalid team'));
 		}
 		
-		$this->set('title_for_layout', WBA('Edit team'));
+		$this->set('title_for_layout', ('Edit team'));
 		
 		if ($this->request->is(array('post', 'put'))) {
 			$this->request->data['Team']['identifier'] = htmlentities(strtolower($this->request->data['Team']['name']));

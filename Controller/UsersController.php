@@ -342,7 +342,7 @@ class UsersController extends UserAdminAppController {
 	}	
 
 	public function finishreg() {
-		$this->set('title_for_layout', WBA('Finish registration'));
+		$this->set('title_for_layout', ('Finish registration'));
     	
 	    $this->tryLoadOuterLayout();
 	    $token = false;
@@ -388,7 +388,7 @@ class UsersController extends UserAdminAppController {
 	// Reset password
 	
     public function resetpasswd() {
-    	$this->set('title_for_layout', WBA('Reset password'));
+    	$this->set('title_for_layout', ('Reset password'));
     	
 	    $this->tryLoadOuterLayout();
 	    
@@ -407,7 +407,7 @@ class UsersController extends UserAdminAppController {
     }
 
     public function newpasswd() {
-    	$this->set('title_for_layout', WBA('New password'));
+    	$this->set('title_for_layout', ('New password'));
     	
 	    $this->tryLoadOuterLayout();
 	    
