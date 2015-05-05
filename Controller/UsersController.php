@@ -99,7 +99,6 @@ class UsersController extends UserAdminAppController {
 	public function logout() {
 		Me::logout();
 		AuthsomeComponent::logout();
-		session_destroy();
 	    return $this->redirect(array('controller' => 'users', 'action' => 'login'));
 	}
 	
@@ -143,6 +142,7 @@ class UsersController extends UserAdminAppController {
 	                $this->Team->create();
 					$data['Team']['name'] = $account['Account']['username'];
 					$data['Team']['identifier'] = $account['Account']['username'];
+					$data['Team']['stripetoken'] = '';
 					$team = $this->Team->save($data);
 					
 					$account['Team']['Team'][] = $team['Team']['id'];
