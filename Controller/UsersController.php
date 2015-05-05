@@ -99,6 +99,7 @@ class UsersController extends UserAdminAppController {
 	public function logout() {
 		Me::logout();
 		AuthsomeComponent::logout();
+		session_destroy();
 	    return $this->redirect(array('controller' => 'users', 'action' => 'login'));
 	}
 	
