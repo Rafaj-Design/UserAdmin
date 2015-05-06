@@ -11,7 +11,14 @@ class UsersController extends UserAdminAppController {
 	
 	public $uses = array('UserAdmin.Account', 'UserAdmin.Team', 'UserAdmin.Role');
 	
-	public $components = array('Paginator');
+	public $components = array(
+		'Paginator',
+	    'Session',
+	    'Authsome.Authsome' => array(
+            'model' => 'UserAdmin.Account'
+        ),
+	    'Cookie'
+	);
 	
 	public $scaffold;
 	
@@ -98,7 +105,7 @@ class UsersController extends UserAdminAppController {
 	
 	public function logout() {
 		Me::logout();
-		AuthsomeComponent::logout();
+		$this->Authsome->logout();
 	    return $this->redirect(array('controller' => 'users', 'action' => 'login'));
 	}
 	
@@ -108,11 +115,11 @@ class UsersController extends UserAdminAppController {
 		$this->tryLoadOuterLayout();
 		if ($this->request->is('post')) {
 			$this->checkIfDefaultDataExists();
-			$account = Authsome::login($this->data['Account']);
+			$account = $this->Authsome->login($this->data['Account']);
 			if ($account) {
 				$remember = (isset($this->data['Account']['remember']) && !empty($this->data['Account']['remember']));
 				if ($remember) {
-					Authsome::persist('2 weeks');
+					$this->Authsome->persist('2 weeks');
 				}
 	        	Me::reload($account);
 	        	if (count($account['Team']) > 0) {
