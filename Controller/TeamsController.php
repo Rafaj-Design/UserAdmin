@@ -39,6 +39,7 @@ class TeamsController extends UserAdminAppController {
 		if ($this->request->is('post')) {
 			$this->Team->create();
 			$this->request->data['Team']['identifier'] = htmlentities(strtolower($this->request->data['Team']['name']));
+			$this->request->data['Team']['stripetoken'] = '';
 			$this->request->data['Account']['Account'][] = Me::id();
 			$team = $this->Team->save($this->request->data);
 			if ($team) {

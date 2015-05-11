@@ -28,6 +28,7 @@ class Role extends UserAdminAppModel {
 		$data['Role']['account_id'] = (int)$accountId;
 		$data['Role']['team_id'] = (int)$teamId;
 		$data['Role']['role'] = $role;
+		$data['Role']['lastip'] = '';
 		$data['Role']['expires'] = '0000-00-00 00:00:00';
 		return $this->save($data);
 	}
