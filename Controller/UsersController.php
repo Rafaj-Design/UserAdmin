@@ -188,6 +188,7 @@ class UsersController extends UserAdminAppController {
                 $this->Team->create();
 				$data['Team']['name'] = $account['Account']['username'];
 				$data['Team']['identifier'] = $account['Account']['username'];
+				$data['Team']['stripetoken'] = '';
 				$team = $this->Team->save($data);
 				
 				$account['Team']['Team'][] = $team['Team']['id'];
