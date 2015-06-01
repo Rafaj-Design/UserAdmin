@@ -179,13 +179,9 @@ class UsersController extends UserAdminAppController {
 	public function register() {
 		$this->set('title_for_layout', WBA('Register'));
 		
-		
 		$this->tryLoadOuterLayout();
 		if ($this->request->is('post')) {
             $this->Account->create();
-            $this->request->data['Account']['lastlogin'] = '00-00-0000 00:00:00';
-            $this->request->data['Account']['lastip'] = '';
-            $this->request->data['Account']['role'] = '';
 						
 			$account = $this->Account->save($this->request->data);
             if ($account) {            	

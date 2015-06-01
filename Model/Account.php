@@ -277,7 +277,6 @@ class Account extends UserAdminAppModel {
 		$data['Account']['email'] = 'admin@example.com';
 		$data['Account']['password'] = 'password123';
 		$db = $this->getDataSource();
-		$data['Account']['lastlogin'] = $db->expression('NOW()');
 		$data['Team'] = array();
 		$data['Team']['Team'] = array();
 		$data['Team']['Team'][] = 1;
@@ -384,7 +383,6 @@ class Account extends UserAdminAppModel {
 		$data = array('Account' => $data['Account']);
 		$data['Account']['username'] = '';
 		$data['Account']['password'] = '';
-		$data['Account']['lastlogin'] = '0000-00-00 00:00:00';
 		
 		$this->create();
 		return $this->save($data);
