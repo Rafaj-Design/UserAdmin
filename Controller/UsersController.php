@@ -194,8 +194,6 @@ class UsersController extends UserAdminAppController {
 				$data['Team']['stripetoken'] = '';
                 $this->Team->create();
 				$team = $this->Team->save($data);
-				debug($team);
-				
 				
 				$account['Team']['Team'][] = $team['Team']['id'];
 				
@@ -463,6 +461,5 @@ class UsersController extends UserAdminAppController {
 		    }
 	    }
     }
-
 
 }
