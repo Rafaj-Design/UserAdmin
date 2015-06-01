@@ -136,7 +136,8 @@ class UsersController extends UserAdminAppController {
 				if (Me::isDemoAccount()) {
 					Error::add(WBA('You are logged in as a demo user, you won\'t be able to save or modify any data!'), Error::TypeInfo);
 				}
-	        	Error::add('You have been successfully logged in', Error::TypeOk);
+				// TODO: Revise if logged in successfully is good to have message
+	        	//Error::add('You have been successfully logged in', Error::TypeOk);
 	        	
 	        	$teams = Me::teams();
 				/*
@@ -176,20 +177,25 @@ class UsersController extends UserAdminAppController {
 	}
 	
 	public function register() {
-		$this->set('title_for_layout', 'Register');
+		$this->set('title_for_layout', WBA('Register'));
+		
 		
 		$this->tryLoadOuterLayout();
 		if ($this->request->is('post')) {
             $this->Account->create();
             $this->request->data['Account']['lastlogin'] = '00-00-0000 00:00:00';
-			
+            $this->request->data['Account']['lastip'] = '';
+            $this->request->data['Account']['role'] = '';
+						
 			$account = $this->Account->save($this->request->data);
             if ($account) {            	
-                $this->Team->create();
 				$data['Team']['name'] = $account['Account']['username'];
 				$data['Team']['identifier'] = $account['Account']['username'];
 				$data['Team']['stripetoken'] = '';
+                $this->Team->create();
 				$team = $this->Team->save($data);
+				debug($team);
+				
 				
 				$account['Team']['Team'][] = $team['Team']['id'];
 				
@@ -197,7 +203,7 @@ class UsersController extends UserAdminAppController {
 				$this->Account->dontEncodePassword = true;
 				$account = $this->Account->save($account);
 				
-				$role = $this->Role->createRole($account['Account']['id'], $team['Team']['id']);
+				$role = $this->Role->createRole($account['Account']['id'], $team['Team']['id'], 'admin');
             	
                 Error::add('Registration has been finished successfully.', Error::TypeOk);
                 $this->login();
