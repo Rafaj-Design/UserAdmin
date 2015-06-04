@@ -182,7 +182,7 @@ class UsersController extends UserAdminAppController {
 		$this->tryLoadOuterLayout();
 		if ($this->request->is('post')) {
             $this->Account->create();
-						
+			$this->request->data['Account']['enabled'] = 1;
 			$account = $this->Account->save($this->request->data);
             if ($account) {            	
 				$data['Team']['name'] = $account['Account']['username'];
