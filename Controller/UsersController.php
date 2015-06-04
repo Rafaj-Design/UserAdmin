@@ -171,6 +171,7 @@ class UsersController extends UserAdminAppController {
 	        }
 	        else {
 	        	Error::add('Unable to login. Please check your login details and try again!', Error::TypeError);
+	        	die('Logout');
 		        $this->logout();
 	        }
 		}
