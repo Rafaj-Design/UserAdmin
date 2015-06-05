@@ -171,7 +171,6 @@ class UsersController extends UserAdminAppController {
 	        }
 	        else {
 	        	Error::add('Unable to login. Please check your login details and try again!', Error::TypeError);
-	        	die('Logout');
 		        $this->logout();
 	        }
 		}
@@ -210,7 +209,7 @@ class UsersController extends UserAdminAppController {
    	}
 	
 	public function account() {
-		$this->set('title_for_layout', 'My account');
+		$this->set('title_for_layout', WBA('My account'));
 		
 		$account = $this->Account->read(null, Me::id());
 		$this->set('account', $account);
@@ -224,7 +223,7 @@ class UsersController extends UserAdminAppController {
 				$this->request->data['Account']['password'] = $account['Account']['password'];
 				$this->Account->dontEncodePassword = true;
 			}
-			$ok = $this->Account->save($this->request->data, true);
+			$ok = $this->Account->updateAccount($this->request->data, true);
 			if ($ok) {
 				Error::add('Your details have been successfully saved.');
 				return $this->redirect(array('controller' => 'users', 'action' => 'account'));

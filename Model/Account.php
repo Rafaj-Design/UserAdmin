@@ -187,6 +187,20 @@ class Account extends UserAdminAppModel {
     
 	// Custom methods
 	
+	public function updateAccount($data) {
+		if (!$this->dontEncodePassword) {
+			$data['Account']['password'] = AuthComponent::password($data['Account']['password']);
+		}
+		$userId = Me::id();
+		// TODO: Secure better using mysql_real_escape_string or use CakePHP to manage update!
+		$userName = mysql_escape_string($data['Account']['firstname']);
+		$userLast = mysql_escape_string($data['Account']['lastname']);
+		$userMail = mysql_escape_string($data['Account']['email']);
+		$userPass = mysql_escape_string($data['Account']['password']);
+		$this->query("UPDATE `accounts` AS Account SET `firstname` = '$userName',  `lastname` = '$userLast',  `email` = '$userMail',  `password` = '$userPass' WHERE Account.`id` = $userId;");
+		return true;
+	}
+	
 	public function getAllWithRolesOptions() {
 		$options = array();
 		$options['fields'] = array('*');
