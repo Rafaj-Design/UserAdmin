@@ -34,7 +34,7 @@ class TeamsController extends UserAdminAppController {
 	}
 	
 	public function add() {
-		$this->set('title_for_layout', ('Create new team'));
+		$this->set('title_for_layout', WBA('Create new team'));
 		
 		if ($this->request->is('post')) {
 			$this->Team->create();
@@ -50,7 +50,7 @@ class TeamsController extends UserAdminAppController {
 				if (isset($this->request->data['apply'])) {
 					return $this->redirect(array('action' => 'edit', $team['Team']['id'], $team['Team']['identifier']));
 				}
-				return $this->redirect(array('action' => 'index'));
+				return $this->redirect('/users/?changeTeam='.$team['Team']['id']);
 			}
 			else {
 				Error::add(WBA('The team could not be saved. Please, try again.'), Error::TypeError);
