@@ -126,7 +126,10 @@ class Account extends UserAdminAppModel {
 
                 // This is the logic for validating the login
                 $conditions = array(
-                    'Account.email' => $credentials['email'],
+			        'OR' => array(
+			            array('Account.email' => $credentials['email']),
+			            array('Account.username' => $credentials['email']),
+			        ),
                     'Account.password' => $password,
                 );
                 break;
