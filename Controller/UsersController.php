@@ -177,7 +177,7 @@ class UsersController extends UserAdminAppController {
 	}
 	
 	public function register() {
-		$this->set('title_for_layout', WBA('Register'));
+		$this->set('title_for_layout', ('Register'));
 		
 		$this->tryLoadOuterLayout();
 		if ($this->request->is('post')) {
@@ -209,7 +209,7 @@ class UsersController extends UserAdminAppController {
    	}
 	
 	public function account() {
-		$this->set('title_for_layout', WBA('My account'));
+		$this->set('title_for_layout', ('My account'));
 		
 		$account = $this->Account->read(null, Me::id());
 		$this->set('account', $account);
