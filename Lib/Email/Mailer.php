@@ -13,7 +13,7 @@ class Mailer {
 	
 	function __construct() {
 		if (!$this->email) {
-			$this->email = new CakeEmail('aws');
+			$this->email = new CakeEmail('gmail');
 		}
 	}
 	
