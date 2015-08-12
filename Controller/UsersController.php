@@ -104,9 +104,14 @@ class UsersController extends UserAdminAppController {
 	}
 	
 	public function logout() {
+		$sessions = Error::getAll();
+		
 		Me::logout();
 		$this->Authsome->logout();
 		$this->Session->destroy();
+		
+		Error::restore($sessions);
+		
 	    return $this->redirect(array('controller' => 'users', 'action' => 'login'));
 	}
 	
@@ -275,7 +280,7 @@ class UsersController extends UserAdminAppController {
 		if (Me::minAdmin()) {
 			$id = (int)$id;
 			if ($id) {
-				$this->Role->saveUserRole($id, 'view', '0000-00-00 00:00:00');
+				$this->Role->saveUserRole($id, 'admin', '0000-00-00 00:00:00');
 				$teamId = Me::teamId();
 				$this->Account->query("INSERT INTO `teams_accounts` (`team_id`, `account_id`) VALUES ($teamId, $id);");
 				Error::add(WBA('User has been linked to this account successfully.'), Error::TypeOk);
@@ -308,7 +313,7 @@ class UsersController extends UserAdminAppController {
 							Error::add(WBA('If the user is unable to access their account please tell them to reset their password.'), Error::TypeInfo);
 						}
 						else {
-							$this->Role->saveUserRole($id, 'view', '0000-00-00 00:00:00');
+							$this->Role->saveUserRole($id, 'admin', '0000-00-00 00:00:00');
 							$teamId = Me::teamId();
 							$this->Account->query("INSERT INTO `teams_accounts` (`team_id`, `account_id`) VALUES ($teamId, $id);");
 					    	$mailer = new PasswordMailer();
