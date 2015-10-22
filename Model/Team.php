@@ -71,7 +71,7 @@ class Team extends UserAdminAppModel {
 	}
 	
 	public function getAll() {
-		$options = getAllOptions();
+		$options = $this->getAllOptions();
 		$data = $this->find('all', $options);
 		return $data;
 	}

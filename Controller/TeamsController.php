@@ -28,12 +28,16 @@ class TeamsController extends UserAdminAppController {
 	// Public page methods
 	
 	public function index() {
-		$this->Team->recursive = 0;
-		$this->Paginator->settings = $this->Team->getAllOptions();
-		$this->set('teams', $this->Paginator->paginate());
+		//$this->Team->recursive = 0;
+		//$this->Paginator->settings = $this->Team->getAllOptions();
+		//$this->set('teams', $this->Paginator->paginate());
+		
+		$this->set('teams', $this->Team->getAll());
 	}
 	
 	public function add() {
+		//$this->layout = 'ajax';
+		
 		$this->set('title_for_layout', ('Create new team'));
 		
 		if ($this->request->is('post')) {

@@ -108,8 +108,11 @@ class Me {
 		return (int)self::team('id');
 	}
 	
-	public static function gravatar($size) {
-		return 'https://1.gravatar.com/avatar/'.md5(self::get('email')).'&r=x&s='.$size;
+	public static function gravatar($size, $email=null) {
+		if (!$email) {
+			$email = self::get('email');
+		}
+		return 'https://1.gravatar.com/avatar/'.md5($email).'&r=x&s='.$size;
 	}
 	
 	public static function id() {
